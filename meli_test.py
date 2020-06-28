@@ -22,14 +22,15 @@ class MeliTestCase(unittest.TestCase):
     def test_load(self):
 
         # Ensayo API items
-        item_id = 'MLA845041373'
+        site_id = {'site': 'MLA', 'id': 845041373}
         item = meli.ItemApi()
-        item.setup(item_id)
+        item.setup(site_id)
 
         meli.async_load([item])
 
         item_vars = vars(item)
-        self.assertEqual(item_vars.get('id'), 'MLA845041373')
+        self.assertEqual(item_vars.get('id'), 845041373)
+        self.assertEqual(item_vars.get('site'), 'MLA')
         self.assertEqual(item_vars.get('category_id'), 'MLA420226')
         self.assertEqual(item_vars.get('currency_id'), 'ARS')
         self.assertEqual(item_vars.get('seller_id'), 78528152)

@@ -14,14 +14,17 @@ __email__ = "hernan4790@gmail.com"
 __version__ = "1.0.0"
 
 import asyncio
+import psycopg2
 import aiohttp
 from aiohttp import ClientSession
+
+db = {}
 
 
 class ApiMeli():
     '''Virtual class for API Meli model'''
     debug_mode = False
-    
+
     @staticmethod
     def set_debug_mode(mode):
         ApiMeli.debug_mode = mode
@@ -38,7 +41,7 @@ class ApiMeli():
     async def load(self):
         '''Load Meli Api'''
         if(self.debug_mode is True):
-            print('Load', self.__class__.__name__ , 'id', self.id)
+            print('Load', self.__class__.__name__, 'id', self.id)
 
         if not self.id:
             if(self.debug_mode is True):
@@ -66,7 +69,7 @@ class ApiMeli():
     async def fetch(self):
         '''Fetch Item Meli Api'''
         if(self.debug_mode is True):
-            print('Fetch', self.__class__.__name__ , ': id', self.id)
+            print('Fetch', self.__class__.__name__, ': id', self.id)
 
         async with aiohttp.ClientSession() as session2:
             async with session2.get(self.url) as response:
@@ -74,7 +77,8 @@ class ApiMeli():
 
         if(self.parse(resp) != 0):
             if(self.debug_mode is True):
-                print('Error', self.__class__.__name__ , ': Parse error, id', self.id)
+                print('Error', self.__class__.__name__,
+                      ': Parse error, id', self.id)
             return 1
 
         return 0
@@ -111,7 +115,8 @@ class CategoryApi(ApiMeli):
     def parse(self, resp):
         if not resp:
             if(self.debug_mode is True):
-                print('Error', self.__class__.__name__, ': Empty resp, id', self.id)
+                print('Error', self.__class__.__name__,
+                      ': Empty resp, id', self.id)
             return 1
 
         self.name = resp.get('name', '')
@@ -124,7 +129,14 @@ class CategoryApi(ApiMeli):
     async def persist(self):
         '''Persit model to DB'''
         if(self.debug_mode is True):
-            print('Persist', self.__class__.__name__, ': id', self.id)
+            print('Persist', self.__class__.__name__,
+                  ': id', self.id)
+
+        if not db:
+            if(self.debug_mode is True):
+                print('Error', self.__class__.__name__,
+                      ': not db, id', self.id)
+            return 1
 
         return 1
 
@@ -144,7 +156,8 @@ class CurrencyApi(ApiMeli):
     def parse(self, resp):
         if not resp:
             if(self.debug_mode is True):
-                print('Error', self.__class__.__name__, ': Empty resp, id', self.id)
+                print('Error', self.__class__.__name__,
+                      ': Empty resp, id', self.id)
             return 1
 
         self.description = resp.get('description', '')
@@ -157,7 +170,14 @@ class CurrencyApi(ApiMeli):
     async def persist(self):
         '''Persit model to DB'''
         if(self.debug_mode is True):
-            print('Persist', self.__class__.__name__, ': id', self.id)
+            print('Persist', self.__class__.__name__,
+                  ': id', self.id)
+
+        if not db:
+            if(self.debug_mode is True):
+                print('Error', self.__class__.__name__,
+                      ': not db, id', self.id)
+            return 1
 
         return 1
 
@@ -171,6 +191,7 @@ class ItemApi(ApiMeli):
         super(ItemApi, self).__init__(api_child_list)
 
         # Inicializo las variables que captura de la Api
+        self.site = ''
         self.price = ''
         self.start_time = ''
         self.category_id = ''
@@ -179,15 +200,18 @@ class ItemApi(ApiMeli):
         self.currency_description = ''
         self.seller_id = ''
 
-    def setup(self, item_id):
+    def setup(self, site_id):
         '''Setup item id'''
-        self.id = item_id
-        self.url = 'https://api.mercadolibre.com/items?ids={}'.format(self.id)
+        self.id = site_id.get('id', '')
+        self.site = site_id.get('site', '')
+        self.url = 'https://api.mercadolibre.com/items? \
+                    ids={}{}'.format(self.site, self.id)
 
     def parse(self, resp):
         if not resp:
             if(self.debug_mode is True):
-                print('Error', self.__class__.__name__, ': Empty resp, id', self.id)
+                print('Error', self.__class__.__name__,
+                      ': Empty resp, id', self.id)
             return 1
 
         body = resp[0].get('body')
@@ -199,7 +223,8 @@ class ItemApi(ApiMeli):
             self.seller_id = body.get('seller_id', '')
         else:
             if(self.debug_mode is True):
-                print('Error', self.__class__.__name__, ': No body, id', self.id)
+                print('Error', self.__class__.__name__,
+                      ': No body, id', self.id)
             return 1
 
         return 0
@@ -207,9 +232,66 @@ class ItemApi(ApiMeli):
     async def persist(self):
         '''Persit model to DB'''
         if(self.debug_mode is True):
-            print('Persist', self.__class__.__name__, ': id', self.id)
+            print('Persist', self.__class__.__name__,
+                  ': id', self.id)
 
+        if not db:
+            if(self.debug_mode is True):
+                print('Error', self.__class__.__name__,
+                      ': not db, id', self.id)
+            return 1
+
+        conn = psycopg2.connect(host=db['host'], port=db['port'],
+                                user=db['user'], password=db['password'],
+                                database=db['database'])
+        cur = conn.cursor()
+
+        query = "INSERT INTO items(id,site,price,start_time,name,description,seller_id) \
+                    VALUES ({},'{}','{}','{}','{}','{}','{}') \
+                    ON CONFLICT (id) DO UPDATE SET price = '{}';".format(
+                        self.id, self.site, self.price, self.start_time,
+                        self.category_name, self.currency_description,
+                        self.seller_id, self.price)
+
+        query = query.replace("''", "null")
+        cur.execute(query)
+
+        conn.commit()
+        conn.close()
         return 0
+
+    @staticmethod
+    def clear_db():
+        conn = psycopg2.connect(host=db['host'], port=db['port'],
+                                user=db['user'], password=db['password'],
+                                database=db['database'])
+        cur = conn.cursor()
+        cur.execute('TRUNCATE items;')
+        cur.execute('DELETE FROM items;')
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def get_db(limit=0, offset=0):
+        conn = psycopg2.connect(host=db['host'], port=db['port'],
+                                user=db['user'], password=db['password'],
+                                database=db['database'])
+        cur = conn.cursor()
+
+        query = 'SELECT * FROM items'
+
+        if limit > 0:
+            query += ' LIMIT{}'.format(limit)
+
+        if offset > 0:
+            query += ' OFFSET{}'.format(offset)
+
+        query += ';'
+
+        cur.execute(query)
+        query_results = cur.fetchall()
+        conn.close()
+        return query_results
 
 
 async def async_load_task(api_meli_list):
@@ -228,6 +310,3 @@ def active_debug_mode():
 
 def async_load(api_meli_list):
     asyncio.run(async_load_task(api_meli_list))
-
-
-    
