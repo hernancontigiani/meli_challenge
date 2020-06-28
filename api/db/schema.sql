@@ -1,8 +1,8 @@
-DROP TABLE IF EXISTS items;
+DROP Table IF EXISTS items;
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY NOT NULL,
     site TEXT NOT NULL,
-    price INTEGER,
+    price DECIMAL,
     start_time TIMESTAMP WITHOUT TIME ZONE,
     name TEXT,
     description TEXT,

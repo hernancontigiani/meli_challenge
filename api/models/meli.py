@@ -204,8 +204,7 @@ class ItemApi(ApiMeli):
         '''Setup item id'''
         self.id = site_id.get('id', '')
         self.site = site_id.get('site', '')
-        self.url = 'https://api.mercadolibre.com/items? \
-                    ids={}{}'.format(self.site, self.id)
+        self.url = 'https://api.mercadolibre.com/items?ids={}{}'.format(self.site, self.id)
 
     def parse(self, resp):
         if not resp:
@@ -214,7 +213,14 @@ class ItemApi(ApiMeli):
                       ': Empty resp, id', self.id)
             return 1
 
-        body = resp[0].get('body')
+        try:
+            body = resp[0].get('body')
+        except:
+            if(self.debug_mode is True):
+                print('Error', self.__class__.__name__,
+                      ': No body resp, id', self.id)
+            return 1
+
         if body is not None:
             self.price = body.get('price', '')
             self.start_time = body.get('start_time', '')
@@ -239,6 +245,11 @@ class ItemApi(ApiMeli):
             if(self.debug_mode is True):
                 print('Error', self.__class__.__name__,
                       ': not db, id', self.id)
+            return 1
+
+        if not self.site:
+            if(self.debug_mode is True):
+                print('Error', self.__class__.__name__, ': empty site')
             return 1
 
         conn = psycopg2.connect(host=db['host'], port=db['port'],

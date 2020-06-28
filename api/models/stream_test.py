@@ -12,17 +12,22 @@ __author__ = "Hernan Contigiani"
 __email__ = "hernan4790@gmail.com"
 __version__ = "1.0.0"
 
+import os
 import unittest
 
 from stream import CsvStream, TxtStream, Jsonlstream
 
+
+script_path = os.path.dirname(os.path.realpath(__file__))
+# Work arround para no perder tiempo con el detalle de los directorios
+file_path = script_path.replace('models', '')
 
 class StreamTestCase(unittest.TestCase):
     ''' Ensayo de los streams'''
     def test_get_chunk(self):
 
         # Test csv stream
-        file_name = 'technical_challenge_data.csv'
+        file_name = os.path.join(file_path, 'technical_challenge_data.csv')
 
         config = {'delimiter': ',', 'encoding': 'utf-8'}
         csv_stream = CsvStream(config)
@@ -34,7 +39,7 @@ class StreamTestCase(unittest.TestCase):
         self.assertEqual(len(chunk), chunksize)
 
         # Test txt stream
-        file_name = 'technical_challenge_data.txt'
+        file_name = os.path.join(file_path, 'technical_challenge_data.txt')
 
         config = {'delimiter': '|', 'encoding': 'utf-8'}
         txt_stream = TxtStream(config)
@@ -46,7 +51,7 @@ class StreamTestCase(unittest.TestCase):
         self.assertEqual(len(chunk), chunksize)
 
         # Jsonlstream
-        file_name = 'technical_challenge_data.jsonl'
+        file_name = os.path.join(file_path, 'technical_challenge_data.jsonl')
 
         config = {'delimiter': ',', 'encoding': 'utf-8'}
         jsonl_stream = Jsonlstream(config)

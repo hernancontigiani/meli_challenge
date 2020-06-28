@@ -13,16 +13,24 @@ __author__ = "Hernan Contigiani"
 __email__ = "hernan4790@gmail.com"
 __version__ = "1.0.0"
 
+import os
+
 import asyncio
 import psycopg2
 
-import meli
-from config import config
+from .app import app, read_file
 
-db = config('postgresql')
-meli_config = config('meli')
-file_stream_config = config('filestream')
+from .models import meli
+from .config import config
 
+script_path = os.path.dirname(os.path.realpath(__file__))
+config_path_name = os.path.join(script_path, 'config.ini')
+
+db = config('db', config_path_name)
+server_config = config('server', config_path_name)
+
+schema_path_name = os.path.join(script_path, 'db')
+schema_path_name = os.path.join(schema_path_name, db.get('schema', '*'))
 
 def create_db():
     ''' Create database and scheme'''
@@ -34,19 +42,26 @@ def create_db():
 
         cur.execute('END;')  # Workarround al problema de "autocommit"
         cur.execute('CREATE DATABASE {};'.format(db['database']))
-        cur.execute(open("schema.sql", "r").read())
+        cur.execute(open(schema_path_name, "r").read())
         conn.commit()
         conn.close()
+        create_schema()
     except:
         res = 1     # Database not created
     
     return res
 
-if __name__ == '__main__':
+def create_schema():
+    conn = psycopg2.connect(host=db['host'], port = db['port'], user=db['user'], password=db['password'])
+    cur = conn.cursor()
+    cur.execute(open(schema_path_name, "r").read())
+    conn.commit()
+    conn.close()
+
+def main():
 
     try:
         conn = psycopg2.connect(host=db['host'], port = db['port'], user=db['user'], password=db['password'], database=db['database'])
-        cur = conn.cursor()
         conn.close()
     except:
         print("First excecution, create db and schema")
@@ -54,28 +69,14 @@ if __name__ == '__main__':
             print('Critical error, no access to database', db['database'])
             quit()
 
-
-    meli.active_debug_mode()
+    # Descomentar para habilitar los print
+    # meli.active_debug_mode()
     meli.db = db
 
-    print('Init table:\n', meli.ItemApi.get_db())
+    app.run(host=server_config['host'],
+            port=server_config['port'],
+            debug=True)
 
-    meli.ItemApi.clear_db()
-
-    print('clear table:\n', meli.ItemApi.get_db())
-
-    api_child_call_list = meli_config['api_item_call'].split(',')
-    api_meli_list = []
-
-    item_1 = meli.ItemApi(api_child_call_list)
-    item_2 = meli.ItemApi()
-
-    item_1.setup({'site': 'MLA', 'id': 845041373})
-    item_2.setup({'site': 'MLA', 'id': 750925229})
-
-    api_meli_list.append(item_1)
-    api_meli_list.append(item_2)
-
-    meli.async_load(api_meli_list)
-
-    print('Finish table:\n', meli.ItemApi.get_db())
+if __name__ == '__main__':
+    # Run API server
+    main()

@@ -16,14 +16,14 @@ __version__ = "1.0.0"
 import csv
 import json
 
+
 class Stream():
     '''Virtual class for Stream model'''
     def __init__(self, config):
         self.id = None
-        self.fd = None
         self.is_open = False
-        self.delimiter = config.get('delimiter',',')
-        self.encoding = config.get('encoding','utf-8')
+        self.delimiter = config.get('delimiter', ',')
+        self.encoding = config.get('encoding', 'utf-8')
 
     def open(self, file_name):
         try:
@@ -40,7 +40,6 @@ class Stream():
     def get_chunk(self, chunksize):
         # Virtual method
         raise NotImplementedError
-
 
     def parse_line(self, line):
         # Virtual method
@@ -59,7 +58,7 @@ class CsvStream(Stream):
             return chunk
 
         if self.reader is None:
-            self.reader  = csv.DictReader(self.fd, self.delimiter)
+            self.reader = csv.DictReader(self.fd, delimiter=self.delimiter)
 
         for i in range(chunksize):
             row = next(self.reader, None)
@@ -70,7 +69,15 @@ class CsvStream(Stream):
         return chunk
 
     def parse_line(self, line):
-        id = line.get('id')
+        id_line = line.get('id')
+        id = 0
+
+        if isinstance(id_line, int):
+            id = id_line
+        elif isinstance(id_line, str):
+            if id_line.isdigit() is True:
+                id = int(id_line)
+
         site = line.get('site')
         return({'site': site, 'id': id})
 
@@ -133,3 +140,6 @@ class Jsonlstream(Stream):
 
         return({'site': site, 'id': id})
 
+factory = {'CsvStream': CsvStream,
+           'TxtStream': TxtStream,
+           'Jsonlstream': Jsonlstream}
