@@ -16,23 +16,26 @@ __version__ = "1.0.0"
 import asyncio
 
 import meli
+import aiohttp
+from aiohttp import ClientSession
 
 
 async def main():
 
-    api_child_list = ('CategoryApi','CategoryApi')
+    api_child_list = ('CategoryApi',)
 
     item_1 = meli.ItemApi(api_child_list)
     item_2 = meli.ItemApi()
 
-    item_1.setup('i1')
-    item_2.setup('i2')
+    item_1.setup('MLA750925229')
+    item_2.setup('MLA845041373')
 
     tasks = []
         # for url in urls:
         #     tasks.append(
         #         write_one(file=file, url=url, session=session, **kwargs)
         #     )
+
 
     tasks.append(item_1.fetch())
     tasks.append(item_2.fetch())
