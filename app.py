@@ -16,33 +16,45 @@ __version__ = "1.0.0"
 import asyncio
 
 import meli
-import aiohttp
-from aiohttp import ClientSession
-
-
-async def main():
-
-    api_child_list = ('CategoryApi',)
-
-    item_1 = meli.ItemApi(api_child_list)
-    item_2 = meli.ItemApi()
-
-    item_1.setup('MLA750925229')
-    item_2.setup('MLA845041373')
-
-    tasks = []
-        # for url in urls:
-        #     tasks.append(
-        #         write_one(file=file, url=url, session=session, **kwargs)
-        #     )
-
-
-    tasks.append(item_1.fetch())
-    tasks.append(item_2.fetch())
-
-    await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
-    # Start api
-    asyncio.run(main())  
+
+    meli.active_debug_mode()
+
+    api_child_call_list = ('CategoryApi', 'CurrencyApi')
+    api_meli_list = []
+
+    item_1 = meli.ItemApi(api_child_call_list)
+    item_2 = meli.ItemApi()
+    item_3 = meli.ItemApi()
+
+    item_1.setup('MLA845041373')
+    item_2.setup('MLA2')
+    item_3.setup('MLA3')
+
+    api_meli_list.append(item_1)
+    api_meli_list.append(item_2)
+    api_meli_list.append(item_3)
+
+    meli.async_load(api_meli_list)
+
+
+    api_meli_list = []
+
+    item_4 = meli.ItemApi(api_child_call_list)
+    item_5 = meli.ItemApi()
+    item_6 = meli.ItemApi()
+
+    item_4.setup('MLA4')
+    item_5.setup('MLA5')
+    item_6.setup('MLA6')
+
+    api_meli_list.append(item_4)
+    api_meli_list.append(item_5)
+    api_meli_list.append(item_6)
+
+    meli.async_load(api_meli_list)
+
+    print(vars(item_1))
+
