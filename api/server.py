@@ -3,7 +3,7 @@
 Modulo meli
 ---------------------------
 Autor: Hernan Contigiani
- 
+
 Descripcion:
 Flask API Rest que consume diferentes APIs de mercadolibre
 por item id
@@ -32,12 +32,16 @@ server_config = config('server', config_path_name)
 schema_path_name = os.path.join(script_path, 'db')
 schema_path_name = os.path.join(schema_path_name, db.get('schema', '*'))
 
+
 def create_db():
     ''' Create database and scheme'''
     res = 0    # No error
 
     try:
-        conn = psycopg2.connect(host=db['host'], port = db['port'], user=db['user'], password=db['password'])
+        conn = psycopg2.connect(host=db['host'],
+                                port=db['port'],
+                                user=db['user'],
+                                password=db['password'])
         cur = conn.cursor()
 
         cur.execute('END;')  # Workarround al problema de "autocommit"
@@ -48,20 +52,28 @@ def create_db():
         create_schema()
     except:
         res = 1     # Database not created
-    
+
     return res
 
+
 def create_schema():
-    conn = psycopg2.connect(host=db['host'], port = db['port'], user=db['user'], password=db['password'])
+    conn = psycopg2.connect(host=db['host'],
+                            port=db['port'],
+                            user=db['user'],
+                            password=db['password'])
     cur = conn.cursor()
     cur.execute(open(schema_path_name, "r").read())
     conn.commit()
     conn.close()
 
-def main():
 
+def main():
     try:
-        conn = psycopg2.connect(host=db['host'], port = db['port'], user=db['user'], password=db['password'], database=db['database'])
+        conn = psycopg2.connect(host=db['host'],
+                                port=db['port'],
+                                user=db['user'],
+                                password=db['password'],
+                                database=db['database'])
         conn.close()
     except:
         print("First excecution, create db and schema")

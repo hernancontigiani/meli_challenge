@@ -48,7 +48,8 @@ class ApiMeli():
                 print('Error', self.__class__.__name__, ': empty id')
             return 1
 
-        await self.fetch()
+        if(await self.fetch()) != 0:
+            return 1
 
         # Load child API calls
         tasks = []
@@ -221,6 +222,14 @@ class ItemApi(ApiMeli):
                       ': No body resp, id', self.id)
             return 1
 
+        code = resp[0].get('code')
+        if code != 200:
+            if(self.debug_mode is True):
+                    print('Error', self.__class__.__name__,
+                        ': code error', code,', id', self.id)
+            self.id = None
+            return 1
+
         if body is not None:
             self.price = body.get('price', '')
             self.start_time = body.get('start_time', '')
@@ -292,10 +301,10 @@ class ItemApi(ApiMeli):
         query = 'SELECT * FROM items'
 
         if limit > 0:
-            query += ' LIMIT{}'.format(limit)
+            query += ' LIMIT {}'.format(limit)
 
         if offset > 0:
-            query += ' OFFSET{}'.format(offset)
+            query += ' OFFSET {}'.format(offset)
 
         query += ';'
 
