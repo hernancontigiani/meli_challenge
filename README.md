@@ -50,11 +50,11 @@ http://127.0.0.1:5000/items/table?limit=10&offset=50
 
 ## Capturas
 #### Index
-![Inove banner](/images/index.png)
+![index page](/images/index.png)
 #### Items
-![Inove banner](/images/items.png)
+![items pager](/images/items.png)
 #### Items en tabla
-![Inove banner](/images/items_table.png)
+![items table page](/images/items_table.png)
 
 ## Documentation
 - [API](/doc/API.md)

@@ -4,16 +4,16 @@ Este documento describe las consideración de diseño que se tuvieron a la hora 
 # Módulo meli
 
 ## Optimización de los recursos del sistema operativo
-Se construyendo las clases que derivan de ApiMeli con la principal preocupación de que no hubiera tiempos muertos de espera entre llamada a la API en la nube y la persistencia de los datos en la DB. Mientras un determinado "objeto" se encuentra a la espera de la información que provee su API asignada, otro objeto deberá aprovechar este tiempo para seguir procesando, consumiendo y persistiendo los datos.\
+Se construyendo las clases que derivan de __ApiMeli__ con la principal preocupación de que no hubiera tiempos muertos de espera entre llamada a la API en la nube y la persistencia de los datos en la DB. Mientras un determinado "objeto" se encuentra a la espera de la información que provee su API asignada, otro objeto deberá aprovechar este tiempo para seguir procesando, consumiendo y persistiendo los datos.\
 Para este fin se usaron las corrutinas y las funciones asincrónicas, para evitar la espera.\
-Como futura mejora se puede analizar el hecho de aprovechar los múltiples CPUs del sistema, ni hablar usar recursos servidores virtualres en paralelo para distribuir el procesamiento.\
+Como futura mejora se puede analizar el hecho de aprovechar los múltiples CPUs del sistema, ni hablar usar recursos virtuales en paralelo para distribuir el procesamiento.
 
 Se ensayaron diferentes cantidades de tareas concurrentes, desde un valor muy bajo como "8" workers a "2000", el resultado que se obtuvo de esa experencia fue el siguiente:\
-Tiempo requerido para consumir el archivo de 200 items con diferentes cantidades de tareas concurrentes:\
+Tiempo requerido para consumir el archivo de 2000 items con diferentes cantidades de tareas concurrentes:\
 ![Inove banner](/images/tiempo_ejecucion.png)
 
 ## Flexibilidad a la hora de encadenar más API call
-Se propuso que el sistema fuera flexible a la hora de sumar más APIs a la cadena. Para esto se desarrollo una clase base __ApiMeli__ de la cual deberiban las clases de __ItemApi__, __CategoryApi__ y __CurrencyApi__ (faltó la de UserApi por un problema menor, pero la implementación es exactamente igual).\
+Se propuso que el sistema fuera flexible a la hora de sumar más APIs a la cadena. Para esto se desarrollo una clase base __ApiMeli__ de la cual derivan las clases de __ItemApi__, __CategoryApi__ y __CurrencyApi__ (faltó la de UserApi por un problema menor, pero la implementación es exactamente igual).\
 En el constructor de cualquiera de la APIs mencionadas se puede pasar como parámetro la lista de API call que dicha API deberá realizar durante su proceso de carga.\
 El proceso de carga "__load__" realiza el consumo de la API "__featch__" y de todas sus APIs encadenadas a esta, es un proceso en cadena el cual pueden a su vez encadenarse más eslabones en cualquier parte de la cadena.\
 Este proceso es flexible y fácil de escalar gracias a los siguientes patrones de diseño:
@@ -23,10 +23,10 @@ Las APIs que se encadenan al la "API principal" se realiza de forma muy fexible 
 Como propuesta futura se implementará el pattern al 100% para automatizar el registro de las clases, por un tema de tiempo se optó por la funcionalidad inmedianta.
 
 #### Decorator
-¿Cómo es que las APIs que se lanzan en cadena a la principal agregan las funcionalidades dinámicamente al objeto que las lanzó? Para esto se utiliza el pattern de __Decorator__\.
+¿Cómo es que las APIs que se lanzan en cadena a la principal agregan las funcionalidades dinámicamente al objeto que las lanzó? Para esto se utiliza el pattern de __Decorator__.\
 Llamaremos objeto "principal" al que posee la lista de APIs call a realizar en cadena (lista de objetos ApiMeli para ejecutar fetch), y objeto "secundario" a aquel que fue lanzado por el "principal" en cadena a su proceso de carga.\
-Este pattern permite que el objeto "principal" sea pasado como referencia al objeto secundario que continue la información de valor agregado. Este objeto sabe como "__decorar__" al objeto principal por lo que pasa los valores de interés a este.\
-Es un proceso sumamente flexible porque la clase del objeto "secundario" es la que tiene le conocimiento de sus datos y por ende de los datos que le pueden servir de utilidad al objeto pasado por parámetro, por lo que lo decora con la información que posee.
+Este pattern permite que el objeto "principal" sea pasado como referencia al objeto secundario que contiene la información de valor agregado. Este objeto sabe como "__decorar__" al objeto principal por lo que pasa los valores de interés a este.\
+Es un proceso sumamente flexible porque la clase del objeto "secundario" es la que tiene el conocimiento de sus datos y por ende de los datos que le pueden servir de utilidad al objeto principal pasado por parámetro, por lo que lo decora con la información que posee.
 
 
 #### Persistencia distribuida
@@ -41,18 +41,21 @@ Se desarrollaron diferentes clases de consumo de datos (stream) de diferentes ti
 - Jsonline --> JsonlStream
 
 La premisa más importante fue no consumir todos los recursos del sistema operativo en el caso de que el stream a consumir fuera más grande que la propia memoria del sistema. Para eso se implementó el mecanismo de "__chunks__".\
-El proceso consta de leer al archivo "trozos" en función de los recursos y la cantidad de tareas concurrentes. El objetivo final si se lo deseara sería poder paralelizar dichos __chunks__ en CPUs o procesos virtual distribuidos.
+El proceso consta de leer el archivo por "trozos" en función de los recursos y la cantidad de tareas concurrentes. El objetivo final, si se lo deseara, sería poder paralelizar dichos __chunks__ en CPUs o procesos virtual distribuidos.
 
 ## Flexibilidad a la hora de sumar otro método de stream
 Tal como se mencionó antes, en el caso del módulo de stream tambíen se utilizó el concepto de __Factory__ para instanciar dinámicamente el tipo de stream deseado según la configuración del sistema.\
 Además, se separo la responsabilidad de consumo de archivo y producción de "chunks" del mecanismo de "parse" y "preparación" de los datos para su consumo.\
 Se puede aprovechar el método "__parse_line__" de cualquiera de las clases sin necesidad de abrir el archivo en cuestión, por lo que puede aprovecharse en un endpoint del tipo POST para ingresar datos a la DB.
 
-# unit test
+# Unit test
 Se generaron algunos unit test tanto del módulo de "__meli__" como el de "__stream__", no contemplan todos los casos posibles pero fueron útiles para las primeras pruebas con las APIs.
 
 # Flask server
-La API la lanza "server.py" que llama al archivo app.py en donde se encuentran todos los handlers de los endpoints implementados. Se dividio el repositorio en directorios para no acomplar las responsabilidades, aún puede trabajarse en ese punto (por ejemplo, colocar los handlers en un archivo separado).
+La API se lanza en "server.py" que llama al archivo app.py en donde se encuentran todos los handlers de los endpoints implementados. Se dividio el repositorio en directorios para no acomplar las responsabilidades, aún puede trabajarse en ese punto (por ejemplo, colocar los handlers en un archivo separado).
+
+# aiohttp
+El módulo nativo de __request__ de python no soporta async task, por lo que se utilizó el aiohttp muy popular para usar con corrutinas.
 
 # Dificultades durante el diseño
 
