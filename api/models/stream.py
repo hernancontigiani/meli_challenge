@@ -94,7 +94,7 @@ class TxtStream(Stream):
 
         for i in range(chunksize):
             row = self.fd.readline()
-            if row is None:
+            if not row:
                 break
             chunk.append(row)
 
@@ -106,6 +106,8 @@ class TxtStream(Stream):
             return {}
 
         site = data[0]
+
+        data[1] = data[1].replace('\n', '')
         if data[1].isdigit() is True:
             id = int(data[1])
         else:
@@ -113,10 +115,10 @@ class TxtStream(Stream):
         return({'site': site, 'id': id})
 
 
-class Jsonlstream(Stream):
+class JsonlStream(Stream):
     '''class for JSON Line stream'''
     def __init__(self, config):
-        super(Jsonlstream, self).__init__(config)
+        super(JsonlStream, self).__init__(config)
 
     def get_chunk(self, chunksize):
         chunk = []
@@ -125,7 +127,7 @@ class Jsonlstream(Stream):
 
         for i in range(chunksize):
             row = self.fd.readline()
-            if row is None:
+            if not row:
                 break
             chunk.append(row)
 
@@ -135,11 +137,18 @@ class Jsonlstream(Stream):
         json1_str = line.replace('\n', '')
         json1_data = json.loads(json1_str)
 
-        id = json1_data.get('id')
+        id_line = json1_data.get('id')
         site = json1_data.get('site')
+
+        id = 0
+        if isinstance(id_line, int):
+            id = id_line
+        elif isinstance(id_line, str):
+            if id_line.isdigit() is True:
+                id = int(id_line)
 
         return({'site': site, 'id': id})
 
 factory = {'CsvStream': CsvStream,
            'TxtStream': TxtStream,
-           'Jsonlstream': Jsonlstream}
+           'JsonlStream': JsonlStream}
