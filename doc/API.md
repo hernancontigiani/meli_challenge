@@ -2,7 +2,7 @@
 Este documento describe como configurar y utilizar la API
 
 ## Archivo de configuración
-El archivo de configuración __"config.ini"__ tiene los siguientes parámetros configurables:\
+El archivo de configuración __"config.ini"__ tiene los siguientes parámetros configurables:
 
 ```
 [meli]
@@ -25,11 +25,11 @@ host=0.0.0.0
 port=5000
 ```
 #### meli
-En este momento hay un único parámetro de configuración para la API de meli, el cual especifica al usuario que otras APIs queremos que sean consultadas en cadena con la API de items. La aplica implementada soporta el consumo en cadena de las siguientes APIs:\
+En este momento hay un único parámetro de configuración para la API de meli, el cual especifica al usuario que otras APIs queremos que sean consultadas en cadena con la API de items. La API implementada soporta el consumo en cadena de las siguientes APIs:
 - ItemsApi
     - CategoryAPi
     - CurrencyApi
-    - UserApi --> quedó pendiente de implementación por falta de TOKEN_ACESS
+    - UserApi --> quedó pendiente de implementación por falta de TOKEN_ACCESS
 
 El sistema soporta encadenar futuras consultas de cualquier API cualquiera que se cree como clase que herede de __ApiMeli__ y se especifique en esta sección del archivo de configuración.
 
@@ -87,7 +87,7 @@ Cuando el sistema termine de consumir el archivo responderá con el tiempo que d
 #### Response
 Según al endpoint que se consulte el sistema devolverá toda la información que posee de los items persistidos (acotado por __limit__ y __offset__) en un formato u otro de presentación.
 
-###### /items
+#### /items
 ![Inove banner](../images/items.png)
-###### /items/table
+#### /items/table
 ![Inove banner](../images/items_table.png)

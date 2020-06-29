@@ -28,7 +28,7 @@ sudo docker run --name postgres96 -e POSTGRES_PASSWORD=1234 -d -p 5432:5432 post
 
 __NOTA:__ Puede colocar el user:password que desee, luego actualice los campos del archivo config.ini
 
-## Uso Básico
+## Uso básico
 #### 1. Configuración
 Editar el archivo __config.ini__ según los parámetros deseados de lanzamiento, como por ejemplo:
 - archivo con la información de los "items" a consumir (formato, encoding, delimitador, etc)
@@ -40,11 +40,11 @@ $ cd meli_scraping   # dirigirse a la carpeta del proyecto
 $ python3 -m api.server # lanzar el server (por default 127.0.0.1:5000)
 </code></pre>
 #### 3. Load items
-- Llamando al `/fileread` endpoint el sistema consumirá el archivo indicado e informará al usuario el tiempo de ejecución.\
+- Llamando al `/fileread` endpoint el sistema consumirá el archivo indicado e informará al usuario el tiempo de ejecución.
 - Al finalizar se habrá cargado toda la información en la base de datos
 #### 4. Leer base de datos de items
-- Llamando al `/items` endpoint estaremos solicitando al sistema que lea toda la base de datos de items y la imprima en pantalla en un formato tipo "json".\
-- Llamando al `/items/table` endpoint estaremos solicitando al sistema toda la base de datos pero se presentará la información en una tabla html.\
+- Llamando al `/items` endpoint estaremos solicitando al sistema que lea toda la base de datos de items y la imprima en pantalla en un formato tipo "json".
+- Llamando al `/items/table` endpoint estaremos solicitando al sistema toda la base de datos pero se presentará la información en una tabla html.
 - Estos endpoint soportan que se especifique el "limit" y "offset" con los cuales queremos que se consulte a la base de datos, ejemplo:\
 http://127.0.0.1:5000/items/table?limit=10&offset=50
 
