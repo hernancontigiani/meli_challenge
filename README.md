@@ -1,4 +1,4 @@
-# Desafío Meli Api Scraping
+# Desafío Meli
 
 
 Esta API permite consultar diferentes contenidos de MELI
